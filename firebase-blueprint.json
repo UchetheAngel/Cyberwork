@@ -1,0 +1,89 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Student profile information and wallet balance",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "displayName": { "type": "string" },
+        "email": { "type": "string" },
+        "bio": { "type": "string" },
+        "level": { "type": "string" },
+        "department": { "type": "string" },
+        "walletBalance": { "type": "number", "description": "Balance in Naira" },
+        "photoURL": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "walletBalance"]
+    },
+    "Assignment": {
+      "title": "Assignment/Project Task",
+      "description": "An assignment or project posted by a student for completion by another",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "price": { "type": "number", "description": "Reward in Naira" },
+        "level": { "type": "string" },
+        "creatorId": { "type": "string" },
+        "completerId": { "type": "string" },
+        "status": { "type": "string", "enum": ["OPEN", "ASSIGNED", "COMPLETED", "PAID"] },
+        "courseCode": { "type": "string" },
+        "deadline": { "type": "string", "format": "date-time" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "price", "creatorId", "status"]
+    },
+    "Post": {
+      "title": "Social Post",
+      "description": "A Twitter-like post in the social feed",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "authorId": { "type": "string" },
+        "authorName": { "type": "string" },
+        "content": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "likesCount": { "type": "number" }
+      },
+      "required": ["authorId", "content", "createdAt"]
+    },
+    "Transaction": {
+      "title": "Wallet Transaction",
+      "description": "Record of money movement between users or system",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "fromId": { "type": "string" },
+        "toId": { "type": "string" },
+        "amount": { "type": "number" },
+        "commission": { "type": "number", "description": "Platform commission taken" },
+        "type": { "type": "string", "enum": ["TRANSFER", "ASSIGNMENT_PAYMENT"] },
+        "status": { "type": "string", "enum": ["SUCCESS", "FAILED"] },
+        "assignmentId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["amount", "type", "status", "createdAt"]
+    }
+  },
+  "firestore": {
+    "users": {
+      "schema": "User",
+      "description": "Active student users"
+    },
+    "assignments": {
+      "schema": "Assignment",
+      "description": "Assignment marketplace tasks"
+    },
+    "posts": {
+      "schema": "Post",
+      "description": "Social feed posts"
+    },
+    "transactions": {
+      "schema": "Transaction",
+      "description": "Wallet movement logs"
+    }
+  }
+}

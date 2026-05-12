@@ -1,0 +1,54 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 3. Primitives
+    function isSignedIn() { 
+      return request.auth != null && request.auth.token.email_verified == true; 
+    }
+    
+    function isOwner(userId) { 
+      return isSignedIn() && request.auth.uid == userId; 
+    }
+    
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+
+    // User Profile Rules
+    match /users/{userId} {
+      allow get, list: if isSignedIn();
+      allow create: if isOwner(userId) && incoming().walletBalance == 0;
+      allow update: if isOwner(userId) && (
+        incoming().diff(existing()).affectedKeys().hasOnly(['bio', 'level', 'department']) ||
+        incoming().diff(existing()).affectedKeys().hasOnly(['walletBalance', 'bio', 'level', 'department'])
+      );
+    }
+
+    // Post Rules
+    match /posts/{postId} {
+      allow get, list: if isSignedIn();
+      allow create: if isSignedIn() && incoming().authorId == request.auth.uid;
+      allow update, delete: if isSignedIn() && existing().authorId == request.auth.uid;
+    }
+
+    // Assignment Rules
+    match /assignments/{assignmentId} {
+      allow get, list: if isSignedIn();
+      allow create: if isSignedIn() && incoming().creatorId == request.auth.uid;
+      allow update: if isSignedIn() && (
+        (existing().creatorId == request.auth.uid) ||
+        (existing().status == 'OPEN' && incoming().status == 'ASSIGNED' && incoming().completerId == request.auth.uid)
+      );
+    }
+
+    // Transaction Rules
+    match /transactions/{txId} {
+      allow get, list: if isSignedIn() && request.auth.uid in resource.data.transactionUsers;
+      allow create: if isSignedIn() && incoming().fromId == request.auth.uid;
+    }
+  }
+}
